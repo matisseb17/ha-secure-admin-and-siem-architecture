@@ -1,0 +1,37 @@
+---
+- name: Exemple générique de durcissement SSH vers un bastion
+  hosts: managed_servers
+  become: true
+  vars:
+    bastion_allowed_cidr: "192.0.2.10/32" # À remplacer par l'IP/CIDR du bastion
+
+  tasks:
+    - name: Désactiver l'authentification root directe en SSH
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?PermitRootLogin'
+        line: 'PermitRootLogin no'
+        validate: 'sshd -t -f %s'
+      notify: Restart sshd
+
+    - name: Désactiver l'authentification par mot de passe SSH (privilégier clés/MFA)
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?PasswordAuthentication'
+        line: 'PasswordAuthentication no'
+        validate: 'sshd -t -f %s'
+      notify: Restart sshd
+
+    - name: Restreindre l'accès SSH à l'adresse du bastion (exemple UFW)
+      community.general.ufw:
+        rule: allow
+        proto: tcp
+        port: "22"
+        src: "{{ bastion_allowed_cidr }}"
+        comment: "Autoriser SSH uniquement depuis le bastion"
+
+  handlers:
+    - name: Restart sshd
+      ansible.builtin.service:
+        name: ssh
+        state: restarted
