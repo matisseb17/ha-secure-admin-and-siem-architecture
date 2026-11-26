@@ -1,8 +1,3 @@
----
-
-### 2. `docs/network-flows.md`
-
-```markdown
 # Matrice de Flux (Modèle Générique)
 
 Les flux ci-dessous illustrent une politique de filtrage orientée moindre privilège et cloisonnement entre zones. Les ports et adresses doivent être adaptés à chaque environnement.
